@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Map Example</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <style>
+        #map {
+            height: 800px;
+        }
+    </style>
+</head>
+<body>
+
+<div id="map"></div>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script>
+
+// Θέση Βασης
+var patrasLatitude = 38.2466;
+var patrasLongitude = 21.7346;
+
+// Δημιουργία χάρτη
+var map = L.map('map').setView([patrasLatitude, patrasLongitude], 13);
+
+// Προσθήκη χάρτη OpenStreetMap
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors'
+}).addTo(map);
+
+// Προσθήκη marker για τη θέση της βάσης
+//var patrasMarker = L.marker([patrasLatitude, patrasLongitude]).addTo(map);
+//patrasMarker.bindPopup("Εδώ είναι η Πάτρα και η βάση μας!").openPopup();
+
+// Υποθέτουμε ότι έχετε μεταβλητές με τις θέσεις του χρήστη, αιτημάτων και προσφορών
+var userLatitude = 38.2468;
+var userLongitude = 21.7348;
+var userLatitudee = 38.2470;
+var userLongitudee = 21.7351;
+var userLatitudeee = 38.2449;
+var userLongitudeee = 21.7340;
+
+
+
+
+// Προσθήκη marker για τη θέση του χρήστη
+var userMarker = L.marker([userLatitude, userLongitude]).addTo(map);
+userMarker.bindPopup("Alex(1ος διασώστης)!").openPopup();
+
+var userMarker = L.marker([userLatitudee, userLongitudee]).addTo(map);
+userMarker.bindPopup("Νικόλας(2ος διασώστης)!").openPopup();
+
+var userMarker = L.marker([userLatitudeee, userLongitudeee]).addTo(map);
+userMarker.bindPopup("Kendrick(3ος διασώστης)!").openPopup();
+
+// Προσθήκη markers για αιτήματα
+
+// Προσθήκη markers για αιτήματα από δεδομένα του server
+fetch('marker_request.php')
+    .then(response => response.json())
+    .then(data => {
+        var requestMarkers = [];
+        data.forEach(request => {
+            var marker = L.marker([request.latitude, request.longitude]).addTo(map);
+            marker.bindPopup(
+                "Αίτημα:<br>" +
+                "Ημερομηνία καταχώρησης: " + request.request_time + "<br>" +
+                "Είδος: " + request.request_title + "<br>" +
+                "Ποσότητα: " + request.number_of_people + "<br>" +
+                "Κατάσταση: " + request.request_status + "<br>" +
+                "Ονοματεπώνυμο: " + request.onomateponimo + "<br>" +
+                "Τηλέφωνο: " + request.tilefono
+
+            );
+            requestMarkers.push(marker);
+        });
+    })
+    .catch(error => console.error('Error fetching data:', error));
+
+
+ //Παράδειγμα με προσαρμοσμένο marker στο Leaflet
+var myIcon = L.icon({
+    iconUrl: 'red_marker.png', // Το URL της εικόνας του προσαρμοσμένου marker
+    iconSize: [30, 30], // Το μέγεθος της εικόνας
+    iconAnchor: [16, 32], // Το σημείο στο οποίο θα εφαρμοστεί το marker
+    popupAnchor: [0, -32] // Το σημείο στο οποίο θα εμφανίζεται το παράθυρο πληροφοριών (popup)
+});
+
+// Δημιουργία marker με το προσαρμοσμένο εικονίδιο
+
+
+// Προσθήκη markers για ανακοινώσεις-προσφορές απο τον αντμιν
+fetch('marker_offers.php')
+    .then(response => response.json())
+    .then(data => {
+        var offerMarkers = [];
+        data.forEach(offer => {
+            var marker_offer = L.marker([offer.latitude, offer.longitude], {icon: myIcon}).addTo(map);
+            marker_offer.bindPopup(
+                "Ανακοινώσεις-Προσφορές:<br>" +
+                "Τίτλος: " + offer.title + "<br>" +
+                "Όνομα χρήστη: " +  offer.username + "<br>" +
+                "Ποσότητα: " + offer.offer_amount + "<br>" +
+                "Ανακοίνωση: " + offer.announcement_title
+            );
+            offerMarkers.push(marker_offer);
+        });
+    })
+    .catch(error => console.error('Error fetching data:', error));
+
+    function setBaseLocationToCookies(location) {
+    document.cookie = `baseLocation=${location.lat},${location.lng}`;
+}
+
+// Ορίζουμε μια συνάρτηση για την ανάκτηση των συντεταγμένων από τα cookies
+function getBaseLocationFromCookies() {
+    const cookies = document.cookie.split(';');
+    for (const cookie of cookies) {
+        const [name, value] = cookie.split('=');
+        if (name.trim() === 'baseLocation') {
+            const [lat, lng] = value.split(',').map(Number);
+            return { lat, lng };
+        }
+    }
+    return null;
+}
+
+// Ορίζουμε τις αρχικές συντεταγμένες της βάσης
+var initialBaseLocation = getBaseLocationFromCookies() || [patrasLatitude, patrasLongitude];
+
+// Δημιουργούμε τον marker της βάσης με τις αρχικές συντεταγμένες
+var patrasBaseMarker = L.marker(initialBaseLocation, { draggable: false }).addTo(map);
+patrasBaseMarker.bindPopup("Εδώ είναι η Πάτρα και η βάση μας!").openPopup();
+
+    if (!warningMessage) {
+        // Αναίρεση της μετακίνησης και επαναφορά στις αρχικές συντεταγμένες
+        event.target.setLatLng(initialBaseLocation).openPopup();
+    } else {
+        alert("Η νέα θέση της βάσης είναι: " + newBaseLocation);
+        map.removeLayer(patrasBaseMarker);
+        // Αποθήκευση των νέων συντεταγμένων της βάσης στα cookies
+        setBaseLocationToCookies(newBaseLocation);
+        // Αποθήκευση των νέων συντεταγμένων της βάσης
+        patrasBaseMarker = L.marker(newBaseLocation, { draggable: true }).addTo(map);
+        patrasBaseMarker.bindPopup("Εδώ είναι η νέα θέση της βάσης!").openPopup();
+        // Κώδικας για την ανταλλαγή της dragend με τις νέες συντεταγμένες
+        patrasBaseMarker.on('dragend', function (event) {
+            var newBaseLocation = event.target.getLatLng();
+            alert("Η νέα θέση της βάσης είναι: " + newBaseLocation);
+    });
+    };
+
+</script>
+</body>
+</html>
